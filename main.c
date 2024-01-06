@@ -16,9 +16,10 @@ int main() {
      */
 
     Bitset* bitset = (Bitset*)malloc(sizeof(Bitset));
-    bsinit(bitset, false);
-    bssetsection(bitset, 2, 10, true);
-    printf("%d\n", bscontiguous(bitset, 3));
+    bsinit(bitset, true);
+    bsset(bitset, 2, 100, false);
+    printf("%x %x %x %x\n", bitset->sets[0], bitset->sets[1], bitset->sets[2], bitset->sets[3]);
+    printf("%d\n", bscontiguous(bitset, 2, false));
 
     return 0;
 }

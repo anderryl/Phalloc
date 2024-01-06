@@ -8,23 +8,31 @@ void bsinit(Bitset* ptr, bool value) {
     memset(ptr, value ? ~0 : 0, sizeof(Bitset));
 }
 
-void bsset(Bitset* bitset, int index, bool value) {
+void bsset(Bitset* bitset, int index, int len, bool value) {
     int section = index / setbits;
-    int mask = 1 << (index % setbits);
+    int final = (index + len) / setbits;
 
-    if (!value) {
-        bitset->sets[section] &= ~mask;
+    if (value) {
+        int start = ~0 << (index % setbits);
+        int end = ~(~0 << ((index + len) % setbits));
+        if (section != final) {
+            bitset->sets[section++] |= start;
+            while (section < final) bitset->sets[section++] = ~0;
+            bitset->sets[section] |= end;
+        }
+        else
+            bitset->sets[section] = (start & end) | bitset->sets[section];
     }
-
     else {
-        bitset->sets[section] |= mask;
-    }
-}
-
-/// Todo: Optimize
-void bssetsection(Bitset* bitset, int index, int len, bool value) {
-    for (int i = index; i < index + len; i++) {
-        bsset(bitset, i, value);
+        int start = ~(~0 << (index % setbits));
+        int end = ~0 << ((index + len) % setbits);
+        if (section != final) {
+            bitset->sets[section++] &= start;
+            while (section < final) bitset->sets[section++] = 0;
+            bitset->sets[section] &= end;
+        }
+        else
+            bitset->sets[section] = (start | end) & bitset->sets[section];
     }
 }
 
@@ -43,9 +51,8 @@ int head(setbase seg, int min) {
 
     if (min) {
         mask = (~0 >> (setbits - min));
-        if ((seg & mask) != mask) {
+        if ((seg & mask) != mask)
             return 0;
-        }
     }
 
     int low = min;
@@ -53,15 +60,10 @@ int head(setbase seg, int min) {
 
     for (int i = (high + low) / 2; low <= high; i = (high + low) / 2) {
         mask = ~((~0) << i);
-        printf("Mask  %x %x %d\n", seg, mask, i);
-        if ((seg & mask) != mask) {
+        if ((seg & mask) != mask)
             high = i - 1;
-        }
-        else {
+        else
             low = i + 1;
-        }
-
-        printf("%d %d\n", low, high);
     }
 
     return low - 1;
@@ -76,10 +78,8 @@ int tail(setbase seg, int min) {
 
     if (min > 0) {
         mask = (~0 << (setbits - min));
-        printf("%x\n", mask);
-        if ((seg & mask) != mask) {
+        if ((seg & mask) != mask)
             return 0;
-        }
     }
 
     int low = min;
@@ -87,32 +87,40 @@ int tail(setbase seg, int min) {
 
     for (int i = (high + low) / 2; low <= high; i = (high + low) / 2) {
         mask = ~0 << (setbits - i);
-        printf("%x %x\n", mask, mask & seg);
-        if ((seg & mask) != mask) {
+        if ((seg & mask) != mask)
             high = i - 1;
-        }
-        else {
+        else
             low = i + 1;
-        }
-
-        printf("%d %d\n", low, high);
     }
 
     return low - 1;
 }
 
-int bscontiguous(Bitset* bitset, int index) {
+int bscontiguous(Bitset* bitset, int index, bool state) {
     int section = index / setbits;
     int secti = index % setbits;
-    int mask = ~0 >> (setbits - secti);
-    printf("%x\n", bitset->sets[section]);
-    if (mask == (mask & bitset->sets[section])) {
-        int current = section;
-        while (!~bitset->sets[++current]);
-        return secti + tail(bitset->sets[current], 0) + setbits * (current - section - 1);
+    int mask = ~0 << secti;
+
+    if (state) {
+        if (mask == (mask & bitset->sets[section])) {
+            int current = section;
+            while (!~bitset->sets[++current]);
+            return (setbits - secti) +
+                   head(bitset->sets[current], 0) +
+                   setbits * (current - section - 1);
+        }
+        else
+            return head(bitset->sets[section] >> secti, 0);
     }
     else {
-        printf("%x %d\n", bitset->sets[section] >> secti, secti);
-        return head(bitset->sets[section] >> secti, 0);
+        if (mask == (mask & ~bitset->sets[section])) {
+            int current = section;
+            while (!bitset->sets[++current]);
+            return (setbits - secti) +
+                   head(~bitset->sets[current], 0) +
+                   setbits * (current - section - 1);
+        }
+        else
+            return head(~bitset->sets[section] >> secti, 0);
     }
 }
