@@ -21,7 +21,7 @@ void bsset(Bitset* bitset, int index, int len, bool value) {
             bitset->sets[section] |= end;
         }
         else
-            bitset->sets[section] = (start & end) | bitset->sets[section];
+            bitset->sets[section] |= start & end;
     }
     else {
         int start = ~(~0 << (index % setbits));
@@ -32,7 +32,7 @@ void bsset(Bitset* bitset, int index, int len, bool value) {
             bitset->sets[section] &= end;
         }
         else
-            bitset->sets[section] = (start | end) & bitset->sets[section];
+            bitset->sets[section] &= start | end;
     }
 }
 

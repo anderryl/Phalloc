@@ -5,7 +5,7 @@
 #ifndef PHALLOCATE_PSPACE_H
 #define PHALLOCATE_PSPACE_H
 
-typedef struct {
+typedef struct PenaltySegment {
     char penalty;
     short start;
 } PenaltySegment;
