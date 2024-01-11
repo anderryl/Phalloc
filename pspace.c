@@ -93,6 +93,29 @@ void pslayloc(PenaltySpace *space, short loc, short penalty, short length) {
     pslaystart(space, current, loc - current->payload.start, penalty, length);
 }
 
+void pslayref(PenaltySpace *space, ListItem* item, PenaltySegment segment, short length) {
+    Iterator iter = itinitref(space, item);
+    ListItem* current = itnext(&iter);
+
+    if (current->payload.start > segment.start) {
+        while (ithasprev(&iter) && current->payload.start > segment.start) {
+            current = itprev(&iter);
+        }
+    }
+    else {
+        while (ithasnext(&iter) && current->payload.start < segment.start) {
+            current = itnext(&iter);
+        }
+
+        if (current->payload.start > segment.start) {
+            current = itprev(&iter);
+        }
+    }
+
+
+    pslaystart(space, current, segment.start - current->payload.start, segment.penalty, length);
+}
+
 void pslayend(PenaltySpace* space, ListItem* item, short offset, short penalty, short length) {
     Iterator iter = itinitref(space, item);
     short dest = (short)((clafter(space, item)->payload.start + (width - ((offset + length) % width))) % width);

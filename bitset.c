@@ -113,13 +113,11 @@ int bscontiguousreverse(Bitset* bitset, int index, bool state) {
     int section = index / setbits;
     int secti = index % setbits;
     unsigned int mask = (unsigned)~0 >> (setbits - secti);
-    printf("%x %d\n", mask, secti);
 
     if (state) {
         if (mask == (mask & bitset->sets[section])) {
             int current = section;
             while (!~bitset->sets[--current] && current > 0);
-            printf("%d %x %d %d\n", head(bitset->sets[current]), bitset->sets[current], current, section);
             return secti +
                    head(bitset->sets[current]) +
                    setbits * (section - current - 1);

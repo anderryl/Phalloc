@@ -19,6 +19,8 @@ void psinit(PenaltySpace* space);
 
 void pslayloc(PenaltySpace *space, short loc, short penalty, short length);
 
+void pslayref(PenaltySpace *space, ListItem* item, PenaltySegment segment, short length);
+
 void pslayend(PenaltySpace* space, ListItem* item, short offset, short penalty, short length);
 
 void pslaystart(PenaltySpace* space, ListItem* item, short offset, short penalty, short length);
