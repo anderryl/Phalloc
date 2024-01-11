@@ -20,10 +20,10 @@ typedef struct {
 #define Payload PenaltySegment
 #endif
 
-typedef struct {
-    Payload payload;
+typedef struct ListItemStruct {
     short next;
     short prev;
+    Payload payload;
 } ListItem;
 
 typedef struct {

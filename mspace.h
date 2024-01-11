@@ -12,12 +12,26 @@ typedef struct {
     Bitset flow;
 } MemorySpace;
 
+typedef struct {
+    bool before;
+    bool after;
+    short length;
+} EdgeState;
+
 void msinit(MemorySpace* space);
 
 short mslength(MemorySpace* space, short x, short y);
 
-void msopen(MemorySpace* space, short x, short y);
+EdgeState msopen(MemorySpace* space, short x, short y);
 
-void msclose(MemorySpace* space, short x, short y, short length);
+EdgeState msclose(MemorySpace* space, short x, short y, short length);
+
+bool msget(MemorySpace* space, short x, short y);
+
+void msprint(MemorySpace* space);
+
+short msnext(MemorySpace* space, short x, short y);
+
+short msprev(MemorySpace* space, short x, short y);
 
 #endif //PHALLOCATE_MSPACE_H

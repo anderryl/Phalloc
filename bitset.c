@@ -42,24 +42,16 @@ bool bsget(Bitset* bitset, int index) {
     return bitset->sets[section] & mask;
 }
 
-int head(setbase seg, int min) {
+int head(setbase seg) {
     if (!~seg) {
         return setbits;
     }
 
-    int mask;
-
-    if (min) {
-        mask = (~0 >> (setbits - min));
-        if ((seg & mask) != mask)
-            return 0;
-    }
-
-    int low = min;
+    int low = 0;
     int high = setbits;
 
     for (int i = (high + low) / 2; low <= high; i = (high + low) / 2) {
-        mask = ~((~0) << i);
+        int mask = (~0) << (setbits - i);
         if ((seg & mask) != mask)
             high = i - 1;
         else
@@ -69,24 +61,16 @@ int head(setbase seg, int min) {
     return low - 1;
 }
 
-int tail(setbase seg, int min) {
+int tail(setbase seg) {
     if (!~seg) {
         return setbits;
     }
 
-    int mask;
-
-    if (min > 0) {
-        mask = (~0 << (setbits - min));
-        if ((seg & mask) != mask)
-            return 0;
-    }
-
-    int low = min;
+    int low = 0;
     int high = setbits;
 
     for (int i = (high + low) / 2; low <= high; i = (high + low) / 2) {
-        mask = ~0 << (setbits - i);
+        int mask = ~((~0) << i);
         if ((seg & mask) != mask)
             high = i - 1;
         else
@@ -104,23 +88,56 @@ int bscontiguous(Bitset* bitset, int index, bool state) {
     if (state) {
         if (mask == (mask & bitset->sets[section])) {
             int current = section;
-            while (!~bitset->sets[++current]);
+            while (!~bitset->sets[++current] && current < setcount - 1);
             return (setbits - secti) +
-                   head(bitset->sets[current], 0) +
+                    tail(bitset->sets[current]) +
                    setbits * (current - section - 1);
         }
         else
-            return head(bitset->sets[section] >> secti, 0);
+            return tail(bitset->sets[section] >> secti);
     }
     else {
         if (mask == (mask & ~bitset->sets[section])) {
             int current = section;
-            while (!bitset->sets[++current]);
+            while (!bitset->sets[++current] && current < setcount - 1);
             return (setbits - secti) +
-                   head(~bitset->sets[current], 0) +
+                    tail(~bitset->sets[current]) +
                    setbits * (current - section - 1);
         }
         else
-            return head(~bitset->sets[section] >> secti, 0);
+            return tail(~bitset->sets[section] >> secti);
+    }
+}
+
+int bscontiguousreverse(Bitset* bitset, int index, bool state) {
+    int section = index / setbits;
+    int secti = index % setbits;
+    unsigned int mask = (unsigned)~0 >> (setbits - secti);
+    printf("%x %d\n", mask, secti);
+
+    if (state) {
+        if (mask == (mask & bitset->sets[section])) {
+            int current = section;
+            while (!~bitset->sets[--current] && current > 0);
+            printf("%d %x %d %d\n", head(bitset->sets[current]), bitset->sets[current], current, section);
+            return secti +
+                   head(bitset->sets[current]) +
+                   setbits * (section - current - 1);
+        }
+        else {
+            return head(bitset->sets[section] << (setbits - secti - 1));
+        }
+    }
+    else {
+        if (mask == (mask & ~bitset->sets[section])) {
+            int current = section;
+            while (!bitset->sets[--current] && current > 0);
+            return secti +
+                    head(~bitset->sets[current]) +
+                    setbits * (section - current - 1);
+        }
+        else {
+            return head(~bitset->sets[section] << (setbits - secti - 1));
+        }
     }
 }
